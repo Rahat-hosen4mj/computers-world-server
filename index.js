@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
@@ -19,14 +19,21 @@ async function run(){
         await client.connect();
         const partsCollection = client.db('computer_world').collection('parts');
 
-        console.log('connection set')
-
+       
+      // get part
         app.get('/part', async(req, res) =>{
             const query = {};
             const cursor = partsCollection.find(query);
             const parts = await cursor.toArray();
             res.send(parts);
         })
+
+        app.get('/part/:id', async(req, res) =>{
+          const id = req.params.id;
+          const query = {_id: ObjectId(id)};
+          const part = await partsCollection.findOne(query);
+          res.send(part)
+      });
 
 
     }
