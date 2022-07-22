@@ -18,6 +18,7 @@ async function run(){
     try{
         await client.connect();
         const partsCollection = client.db('computer_world').collection('parts');
+        const orderCollection = client.db('computer_world').collection('orders');
 
        
       // get part
@@ -34,6 +35,13 @@ async function run(){
           const part = await partsCollection.findOne(query);
           res.send(part)
       });
+
+      // post order in the server
+      app.post('/order', async (req, res) => {
+        const order = req.body;
+        const result = await orderCollection.insertOne(order);
+        res.send( result );
+      })
 
 
     }
