@@ -21,6 +21,7 @@ async function run() {
     await client.connect();
     const partsCollection = client.db("computer_world").collection("parts");
     const orderCollection = client.db("computer_world").collection("orders");
+    const userCollection = client.db("computer_world").collection("users");
 
     // get part
     app.get("/part", async (req, res) => {
@@ -36,6 +37,19 @@ async function run() {
       const part = await partsCollection.findOne(query);
       res.send(part);
     });
+
+    // update user info into database
+    app.put('/user/:email', async(req, res) =>{
+      const email = req.params.email;
+      const user = req.body;
+      const filter = {email: email}
+      const options = {upsert: true}
+      const updateDoc = {
+        $set: user,
+      }
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result)
+    })
 
     // get order from server
     app.get("/order", async (req, res) => {
