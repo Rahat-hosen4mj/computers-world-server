@@ -55,18 +55,18 @@ async function run() {
     });
 
     // update user info into database
-    app.put('/user/:email', async(req, res) =>{
-      const email = req.params.email;
-      const user = req.body;
-      const filter = {email: email}
-      const options = {upsert: true}
-      const updateDoc = {
-        $set: user,
-      }
-      const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1d'})
-      res.send({result, token})
-    })
+    // app.put('/user/:email', async(req, res) =>{
+    //   const email = req.params.email;
+    //   const user = req.body;
+    //   const filter = {email: email}
+    //   const options = {upsert: true}
+    //   const updateDoc = {
+    //     $set: user,
+    //   }
+    //   const result = await userCollection.updateOne(filter, updateDoc, options);
+    //   const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1d'})
+    //   res.send({result, token})
+    // })
 
     // get order from server
     app.get("/order", verifyJWT, async(req, res) => {
@@ -97,6 +97,7 @@ async function run() {
 
 run().catch(console.dir);
 
+// for testing purpose
 app.get("/", (req, res) => {
   res.send("Computers wrold server side running");
 });
