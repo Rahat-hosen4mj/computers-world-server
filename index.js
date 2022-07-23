@@ -16,6 +16,22 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+// verify jwt for unautorized access
+function verifyJWT(req, res, next){
+  const authHeader = req.headers.authorization;
+  if(!authHeader){
+    return res.status(401).send({message: 'Unauthorized access'})
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
+    if(err){
+      return res.status(403).send({message: 'Forbidded Access'})
+    }
+    req.decoded = decoded;
+    next()
+  });
+}
+
 async function run() {
   try {
     await client.connect();
@@ -48,16 +64,25 @@ async function run() {
         $set: user,
       }
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      res.send(result)
+      const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1d'})
+      res.send({result, token})
     })
 
     // get order from server
-    app.get("/order", async (req, res) => {
+    app.get("/order", verifyJWT, async(req, res) => {
       const buyer = req.query.buyer || "nusrat@gmail.com";
-      const query = { buyer: buyer };
-      const orders = await orderCollection.find(query).toArray();
-      res.send(orders);
+      const decodedEmail = req.decoded.email
+      if(decodedEmail === buyer){
+        const query = { buyer: buyer };
+        const orders = await orderCollection.find(query).toArray();
+        res.send(orders);
+      }
+      else{
+        return res.status(403).send({message: 'Forbidded Access'})
+      }
+     
     });
+
 
     // post order in the server
     app.post("/order", async (req, res) => {
