@@ -130,6 +130,14 @@ async function run() {
      
     });
 
+    // delete part from database
+    app.delete('/part/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await partsCollection.deleteOne(query);
+      res.send(result);
+    })
+
     // add part in the database
     app.post("/part", verifyJWT, verifyAdmin, async (req, res) => {
       const part = req.body;
