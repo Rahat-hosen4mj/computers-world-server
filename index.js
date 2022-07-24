@@ -36,6 +36,7 @@ async function run() {
   try {
     await client.connect();
     const partsCollection = client.db("computer_world").collection("parts");
+    const reviewCollection = client.db("computer_world").collection("reviews");
     const orderCollection = client.db("computer_world").collection("orders");
     const userCollection = client.db("computer_world").collection("users");
 
@@ -51,7 +52,7 @@ async function run() {
       }
     }
 
-    // get part
+    // get all  part
     app.get("/part", async (req, res) => {
       const query = {};
       const cursor = partsCollection.find(query);
@@ -65,6 +66,15 @@ async function run() {
       const part = await partsCollection.findOne(query);
       res.send(part);
     });
+
+    // get all review
+    app.get("/review", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
+
 
     // get all user in the page
     app.get('/user', verifyJWT, async(req, res) => {
@@ -81,7 +91,7 @@ async function run() {
     })
 
     // make admit 
-    app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+   app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       const updateDoc = {
@@ -120,11 +130,23 @@ async function run() {
      
     });
 
+    // add part in the database
+    app.post("/part", verifyJWT, verifyAdmin, async (req, res) => {
+      const part = req.body;
+      const result = await partsCollection.insertOne(part);
+      res.send(result);
+    });
+
+    // post review in the database
+    app.post("/review", async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
 
     // post order in the server
     app.post("/order", async (req, res) => {
       const order = req.body;
-      // const query = { product: order.product,  buyer: order.buyer }
       const result = await orderCollection.insertOne(order);
       res.send(result);
     });
