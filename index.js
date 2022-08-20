@@ -2,8 +2,10 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -35,10 +37,12 @@ function verifyJWT(req, res, next){
 async function run() {
   try {
     await client.connect();
+    console.log('apps running succesfully')
     const partsCollection = client.db("computer_world").collection("parts");
     const reviewCollection = client.db("computer_world").collection("reviews");
     const orderCollection = client.db("computer_world").collection("orders");
     const userCollection = client.db("computer_world").collection("users");
+    const paymentCollection = client.db("computer_world").collection("payments");
 
     // verify admin
     const verifyAdmin = async (req, res, next) => {
@@ -129,6 +133,47 @@ async function run() {
       }
      
     });
+
+    // get a specific order [by id]
+    app.get('/order/:id', verifyJWT, async(req, res) =>{
+      const id = req.params.id;
+      const filter = {_id: ObjectId(id)};
+      const order = await orderCollection.findOne(filter);
+      res.send(order)
+    })
+
+    // make payment intent
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const  service  = req.body;
+      const price = service.price
+      const amount = price * 100
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ['card']
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      });
+
+    });
+
+     // update when payment success
+     app.patch('/order/:id', verifyJWT, async(req, res) =>{
+      const id  = req.params.id;
+      const payment = req.body;
+      const filter = {_id: ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId
+        }
+      }
+      const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await orderCollection.updateOne(filter, updatedDoc);
+      res.send(updatedBooking);
+    })
 
     // delete part from database
     app.delete('/part/:id', verifyJWT, verifyAdmin, async (req, res) => {
