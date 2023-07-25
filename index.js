@@ -36,7 +36,7 @@ function verifyJWT(req, res, next){
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     console.log('apps running succesfully')
     const partsCollection = client.db("computer_world").collection("parts");
     const reviewCollection = client.db("computer_world").collection("reviews");
