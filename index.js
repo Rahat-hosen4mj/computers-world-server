@@ -36,7 +36,7 @@ function verifyJWT(req, res, next){
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
     console.log('apps running succesfully')
     const partsCollection = client.db("computer_world").collection("parts");
     const reviewCollection = client.db("computer_world").collection("reviews");
@@ -79,7 +79,7 @@ async function run() {
       res.send(reviews);
     });
 
-
+          iyfy9yfe98rfye98yr98y
     // get all user in the page
     app.get('/user', verifyJWT, async(req, res) => {
       const users = await userCollection.find().toArray();
@@ -94,7 +94,7 @@ async function run() {
       res.send({ admin: isAdmin })
     })
 
-    // make admit 
+    // make admin
    app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
